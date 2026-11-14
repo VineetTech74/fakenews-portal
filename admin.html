@@ -38,98 +38,140 @@
 </head>
 <body class="bg-light">
 
-    <!-- Top Admin Navigation -->
-    <nav class="navbar navbar-dark admin-nav px-4 py-3 shadow">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <span class="navbar-brand fw-bold fs-5 mb-0">🛡️ VeriTruth Admin Console</span>
-                <span class="badge bg-success">Live Storage Connected</span>
+    <!-- ========================================================= -->
+    <!-- LOCK SCREEN: DISPLAYED WHEN ACCESS IS RESTRICTED           -->
+    <!-- ========================================================= -->
+    <div id="adminLockScreen" class="min-vh-100 d-flex flex-column justify-content-center align-items-center py-5 px-3">
+        <div class="card border-0 shadow-lg p-4 p-md-5 text-center" style="max-width: 480px; width: 100%; border-radius: 20px;">
+            <div class="display-3 mb-3">🔒</div>
+            <h3 class="fw-bold text-dark mb-2">Admin Console Restricted</h3>
+            <p class="text-muted small mb-4">
+                This section is reserved for verified fact-checkers and system administrators. Standard users cannot view or edit system reports.
+            </p>
+
+            <form onsubmit="handleAdminUnlock(event)">
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-semibold small">Admin Security Passcode</label>
+                    <input type="password" id="adminPasscodeInput" class="form-control form-control-lg fs-6" placeholder="Enter Admin Passcode" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold fs-6 mb-3">
+                    Unlock Admin Console
+                </button>
+            </form>
+
+            <div class="alert alert-light border py-2 mb-3 small text-muted text-start">
+                💡 <strong>Admin Credentials:</strong><br>
+                Passcode: <code>admin123</code><br>
+                Or sign in as <code>admin@fakenews.com</code> on the portal.
             </div>
-            <div class="d-flex gap-2">
-                <a href="index.html" class="btn btn-outline-light btn-sm">🌐 Main Portal Home</a>
-                <a href="profile.html" class="btn btn-outline-info btn-sm">👤 My Profile</a>
-                <button class="btn btn-secondary btn-sm" onclick="renderAdmin()">🔄 Refresh</button>
-            </div>
+
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                ← Return to Main Portal
+            </a>
         </div>
-    </nav>
+    </div>
 
-    <div class="container-fluid px-4 my-4">
-        
-        <!-- Alert Notification Box -->
-        <div id="adminAlertContainer"></div>
 
-        <!-- Stat Overview Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card p-3 text-center" id="card-reports" onclick="switchView('reports')">
-                    <h6 class="text-muted text-uppercase small mb-1">Pending Reports</h6>
-                    <h2 class="fw-bold text-warning mb-0" id="cntPending">0</h2>
-                    <small class="text-muted">Awaiting Admin Review</small>
+    <!-- ========================================================= -->
+    <!-- MAIN ADMIN DASHBOARD: DISPLAYED ONLY FOR AUTHORIZED ADMIN  -->
+    <!-- ========================================================= -->
+    <div id="adminDashboardContent" class="d-none">
+
+        <!-- Top Admin Navigation -->
+        <nav class="navbar navbar-dark admin-nav px-4 py-3 shadow">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="navbar-brand fw-bold fs-5 mb-0">🛡️ VeriTruth Admin Console</span>
+                    <span class="badge bg-success" id="adminRoleBadge">Verified Admin Session</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="index.html" class="btn btn-outline-light btn-sm">🌐 Main Portal Home</a>
+                    <a href="profile.html" class="btn btn-outline-info btn-sm">👤 My Profile</a>
+                    <button class="btn btn-outline-danger btn-sm" onclick="lockAdminConsole()">🔒 Lock Console</button>
+                    <button class="btn btn-secondary btn-sm" onclick="renderAdmin()">🔄 Refresh</button>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card p-3 text-center" id="card-verified" onclick="switchView('verified')">
-                    <h6 class="text-muted text-uppercase small mb-1">Verified Real News</h6>
-                    <h2 class="fw-bold text-success mb-0" id="cntVerified">0</h2>
-                    <small class="text-muted">Confirmed Authentic</small>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card p-3 text-center" id="card-fake" onclick="switchView('fake_cases')">
-                    <h6 class="text-muted text-uppercase small mb-1">Identified Fake News</h6>
-                    <h2 class="fw-bold text-danger mb-0" id="cntFake">0</h2>
-                    <small class="text-muted">Confirmed Misinformation</small>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card p-3 text-center" id="card-users" onclick="switchView('users')">
-                    <h6 class="text-muted text-uppercase small mb-1">Active Accounts</h6>
-                    <h2 class="fw-bold text-primary mb-0" id="cntUsers">0</h2>
-                    <small class="text-muted">Registered System Users</small>
-                </div>
-            </div>
-        </div>
+        </nav>
 
-        <!-- Navigation Tabs Bar -->
-        <ul class="nav nav-tabs mb-4">
-            <li class="nav-item">
-                <a class="nav-link active fw-bold" id="tab-reports" href="#" onclick="switchView('reports'); return false;">
-                    🚨 Pending Reports (<span id="tabCountPending">0</span>)
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="tab-verified" href="#" onclick="switchView('verified'); return false;">
-                    ✓ Verified Real News (<span id="tabCountVerified">0</span>)
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="tab-fake" href="#" onclick="switchView('fake_cases'); return false;">
-                    ⚠️ Fake / Scam Cases (<span id="tabCountFake">0</span>)
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="tab-history" href="#" onclick="switchView('history'); return false;">
-                    🔍 Verification Logs (<span id="tabCountHistory">0</span>)
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="tab-users" href="#" onclick="switchView('users'); return false;">
-                    👥 User Accounts (<span id="tabCountUsers">0</span>)
-                </a>
-            </li>
-        </ul>
-
-        <!-- Main Content Table Card -->
-        <div class="card border-0 shadow-sm rounded-3 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold text-dark mb-0" id="viewTitle">Incoming User Reports Pipeline</h5>
-                <input type="text" id="adminSearchInput" class="form-control w-25" placeholder="Filter rows..." onkeyup="filterAdminTable()">
-            </div>
+        <div class="container-fluid px-4 my-4">
             
-            <div class="table-responsive" id="tableContainer">
-                <!-- Dynamically Rendered by renderAdmin() -->
+            <!-- Alert Notification Box -->
+            <div id="adminAlertContainer"></div>
+
+            <!-- Stat Overview Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card p-3 text-center" id="card-reports" onclick="switchView('reports')">
+                        <h6 class="text-muted text-uppercase small mb-1">Pending Reports</h6>
+                        <h2 class="fw-bold text-warning mb-0" id="cntPending">0</h2>
+                        <small class="text-muted">Awaiting Admin Review</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card p-3 text-center" id="card-verified" onclick="switchView('verified')">
+                        <h6 class="text-muted text-uppercase small mb-1">Verified Real News</h6>
+                        <h2 class="fw-bold text-success mb-0" id="cntVerified">0</h2>
+                        <small class="text-muted">Confirmed Authentic</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card p-3 text-center" id="card-fake" onclick="switchView('fake_cases')">
+                        <h6 class="text-muted text-uppercase small mb-1">Identified Fake News</h6>
+                        <h2 class="fw-bold text-danger mb-0" id="cntFake">0</h2>
+                        <small class="text-muted">Confirmed Misinformation</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card p-3 text-center" id="card-users" onclick="switchView('users')">
+                        <h6 class="text-muted text-uppercase small mb-1">Active Accounts</h6>
+                        <h2 class="fw-bold text-primary mb-0" id="cntUsers">0</h2>
+                        <small class="text-muted">Registered System Users</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs Bar -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold" id="tab-reports" href="#" onclick="switchView('reports'); return false;">
+                        🚨 Pending Reports (<span id="tabCountPending">0</span>)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="tab-verified" href="#" onclick="switchView('verified'); return false;">
+                        ✓ Verified Real News (<span id="tabCountVerified">0</span>)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="tab-fake" href="#" onclick="switchView('fake_cases'); return false;">
+                        ⚠️ Fake / Scam Cases (<span id="tabCountFake">0</span>)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="tab-history" href="#" onclick="switchView('history'); return false;">
+                        🔍 Verification Logs (<span id="tabCountHistory">0</span>)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="tab-users" href="#" onclick="switchView('users'); return false;">
+                        👥 User Accounts (<span id="tabCountUsers">0</span>)
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Main Content Table Card -->
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0" id="viewTitle">Incoming User Reports Pipeline</h5>
+                    <input type="text" id="adminSearchInput" class="form-control w-25" placeholder="Filter rows..." onkeyup="filterAdminTable()">
+                </div>
+                
+                <div class="table-responsive" id="tableContainer">
+                    <!-- Dynamically Rendered by renderAdmin() -->
+                </div>
             </div>
         </div>
+
     </div>
 
     <!-- Bootstrap Bundle & DB Script -->
@@ -137,16 +179,58 @@
     <script src="db.js"></script>
 
     <script>
+        const ADMIN_PASSCODE = "admin123";
         let currentView = 'reports';
 
         document.addEventListener("DOMContentLoaded", () => {
-            renderAdmin();
+            verifyAdminAccess();
         });
+
+        // Security / Access Control Check
+        function verifyAdminAccess() {
+            const currentUser = DB.getCurrentUser();
+            const sessionUnlocked = sessionStorage.getItem("admin_unlocked") === "true";
+
+            // Authorized if user has Fact Checker / Moderator role, or admin email, or session unlocked
+            const isAuthorizedUser = currentUser && (
+                currentUser.role === 'Fact Checker' || 
+                currentUser.role === 'Moderator' ||
+                currentUser.email === 'admin@fakenews.com'
+            );
+
+            if (isAuthorizedUser || sessionUnlocked) {
+                document.getElementById('adminLockScreen').classList.add('d-none');
+                document.getElementById('adminDashboardContent').classList.remove('d-none');
+                if (currentUser) {
+                    document.getElementById('adminRoleBadge').innerText = `${currentUser.name} (${currentUser.role || 'Admin'})`;
+                }
+                renderAdmin();
+            } else {
+                document.getElementById('adminDashboardContent').classList.add('d-none');
+                document.getElementById('adminLockScreen').classList.remove('d-none');
+            }
+        }
+
+        function handleAdminUnlock(event) {
+            if (event) event.preventDefault();
+            const input = document.getElementById('adminPasscodeInput')?.value || '';
+
+            if (input === ADMIN_PASSCODE) {
+                sessionStorage.setItem("admin_unlocked", "true");
+                verifyAdminAccess();
+            } else {
+                alert("Incorrect Admin Passcode. Access denied.");
+            }
+        }
+
+        function lockAdminConsole() {
+            sessionStorage.removeItem("admin_unlocked");
+            verifyAdminAccess();
+        }
 
         function switchView(viewName) {
             currentView = viewName;
 
-            // Update Tabs
             ['reports', 'verified', 'fake_cases', 'history', 'users'].forEach(v => {
                 const tab = document.getElementById('tab-' + (v === 'fake_cases' ? 'fake' : v));
                 const card = document.getElementById('card-' + (v === 'fake_cases' ? 'fake' : v));

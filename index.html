@@ -116,7 +116,7 @@
                         <li class="nav-item">
                             <a class="btn btn-outline-info btn-sm px-3 ms-2 text-white" href="profile.html">My Profile</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item d-none" id="navAdminItem">
                             <a class="btn btn-warning btn-sm px-3 ms-2 fw-semibold text-dark" href="admin.html">Admin View</a>
                         </li>
                         <li class="nav-item">
@@ -282,18 +282,34 @@ document.addEventListener("DOMContentLoaded", () => {
 function checkUserAuth() {
     const currentUser = DB.getCurrentUser();
     if (currentUser) {
-        showPortalUI(currentUser.name);
+        showPortalUI(currentUser);
     } else {
         showAuthGateUI();
     }
 }
 
-function showPortalUI(username) {
+function showPortalUI(user) {
     document.getElementById('authGateSection')?.classList.add('d-none');
     document.getElementById('portalSection')?.classList.remove('d-none');
     
+    const userName = (typeof user === 'object' && user) ? user.name : user;
     const greeting = document.getElementById('userGreeting');
-    if (greeting) greeting.innerText = "Welcome, " + username;
+    if (greeting) greeting.innerText = "Welcome, " + userName;
+
+    // Role-based Admin button display: only shown for Admin / Fact Checker
+    const navAdmin = document.getElementById('navAdminItem');
+    const isAdmin = typeof user === 'object' && user && (
+        user.role === 'Fact Checker' || 
+        user.role === 'Moderator' || 
+        user.email === 'admin@fakenews.com'
+    );
+    if (navAdmin) {
+        if (isAdmin) {
+            navAdmin.classList.remove('d-none');
+        } else {
+            navAdmin.classList.add('d-none');
+        }
+    }
 
     loadHistoryTable();
 }
@@ -422,7 +438,7 @@ function handleRegister(event) {
 
     if (res.status === 'success') {
         alert(res.message);
-        showPortalUI(res.user.name);
+        showPortalUI(res.user);
     } else {
         alert("Registration Failed: " + res.message);
     }
@@ -443,7 +459,7 @@ function handleLogin(event) {
     const res = DB.login(email, password);
 
     if (res.status === 'success') {
-        showPortalUI(res.user.name);
+        showPortalUI(res.user);
     } else {
         alert("Sign In Failed: " + res.message);
     }
