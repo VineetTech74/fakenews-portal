@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriTruth - Fake News Detection & Verification Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ========================================================= -->
+    <!-- GATE 1: AUTHENTICATION GATE (Visible ONLY When Logged Out) -->
+    <!-- ========================================================= -->
+    <div id="authGateSection" class="min-vh-100 d-flex flex-column justify-content-center align-items-center py-5 px-3">
+        <div class="auth-card custom-card p-4 p-md-5" style="max-width: 520px; width: 100%;">
+            
+            <div class="text-center mb-4">
+                <div class="display-6 fw-bold text-primary mb-2">🛡️ VeriTruth</div>
+                <h4 class="fw-bold text-dark mb-1">Misinformation & News Verification Portal</h4>
+                <p class="text-muted small">Please sign in or create an account to access the news verification engine, database history, and community reporting.</p>
+            </div>
+
+            <!-- Login / Register Tabs -->
+            <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="authGateTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-bold py-2" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button">Sign In</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold py-2" id="tab-register" data-bs-toggle="pill" data-bs-target="#pane-register" type="button">Create Account</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- SIGN IN PANE -->
+                <div class="tab-pane fade show active" id="pane-login">
+                    <form onsubmit="return handleLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Registered Email Address</label>
+                            <input type="email" id="gateLoginEmail" class="form-control form-control-lg fs-6" placeholder="name@example.com" value="admin@fakenews.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Account Password</label>
+                            <input type="password" id="gateLoginPassword" class="form-control form-control-lg fs-6" placeholder="••••••••" value="password123" required>
+                        </div>
+                        <div class="alert alert-light border py-2 mb-3 small text-muted">
+                            💡 <strong>Demo Credentials:</strong><br>
+                            Email: <code>admin@fakenews.com</code> | Password: <code>password123</code>
+                        </div>
+                        <button type="submit" id="btnGateLogin" class="btn btn-primary btn-lg w-100 fw-bold py-2 fs-6">
+                            🔐 Sign In to Enter Portal
+                        </button>
+                    </form>
+                </div>
+
+                <!-- REGISTER PANE -->
+                <div class="tab-pane fade" id="pane-register">
+                    <form onsubmit="return handleRegister(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Your Full Name</label>
+                            <input type="text" id="gateRegName" class="form-control form-control-lg fs-6" placeholder="e.g. Rahul Sharma" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Email Address</label>
+                            <input type="email" id="gateRegEmail" class="form-control form-control-lg fs-6" placeholder="name@example.com" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Choose Password (Min 4 chars)</label>
+                            <input type="password" id="gateRegPassword" class="form-control form-control-lg fs-6" placeholder="••••••••" minlength="4" required>
+                        </div>
+                        <button type="submit" id="btnGateRegister" class="btn btn-success btn-lg w-100 fw-bold py-2 fs-6">
+                            ✨ Create Account & Access
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <small class="text-muted">Administrator or Fact-Checking Team? <a href="admin.html" class="fw-semibold text-decoration-none">Access Admin Console</a></small>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- GATE 2: MAIN PORTAL CONTENT (Visible ONLY When Logged In) -->
+    <!-- ========================================================= -->
+    <div id="portalSection" class="d-none">
+
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold fs-4" href="#" onclick="showSection('home')">🛡️ VeriTruth Portal</a>
+                <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="navLinkHome" href="#" onclick="showSection('home')">Verify News</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="navLinkHistory" href="#" onclick="showSection('history')">My History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="navLinkReport" href="#" onclick="showSection('report')">Report Fake News</a>
+                        </li>
+                        
+                        <!-- User View (Logged In) -->
+                        <li class="nav-item">
+                            <span class="nav-link text-white fw-bold ms-2" id="userGreeting">Welcome, User</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-info btn-sm px-3 ms-2 text-white" href="profile.html">My Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-warning btn-sm px-3 ms-2 fw-semibold text-dark" href="admin.html">Admin View</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-danger btn-sm px-3 ms-2" onclick="handleLogout(event)">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Header -->
+        <header class="hero-section text-center">
+            <div class="container m-auto">
+                <h1 class="display-5 fw-bold">Stop the Spread of Misinformation</h1>
+                <p class="lead">Crosscheck news articles, claims, and viral forwards with our strict evidence-based fact-checking engine.</p>
+            </div>
+        </header>
+
+        <!-- Main Content Dynamic Container -->
+        <main class="container my-4">
+            
+            <!-- SECTION 1: VERIFICATION & SEARCH HOME -->
+            <section id="home-section">
+                <div class="row g-4">
+                    <!-- Submission Form -->
+                    <div class="col-lg-8">
+                        <div class="card custom-card p-4">
+                            <h3 class="mb-2 fw-bold text-primary">Verify News Article / Claim</h3>
+                            <p class="text-muted small mb-4">Paste any news headline, government claim, or viral forward. The system cross-checks against verified official releases and known scam registries.</p>
+                            
+                            <form id="verificationForm" onsubmit="handleAnalyzeNews(event)">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">News Headline / Statement <span class="text-danger">*</span></label>
+                                    <input type="text" id="newsTitle" class="form-control form-control-lg" placeholder="e.g. Government announces new subsidy scheme on education..." required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Full Article Context / Details (Optional)</label>
+                                    <textarea id="newsContent" class="form-control" rows="4" placeholder="Paste supporting text, source URL, or message body to deepen verification accuracy..."></textarea>
+                                </div>
+                                <button type="submit" id="btnVerify" class="btn btn-primary btn-lg w-100 mt-2 fw-bold">
+                                    🔍 Check News Authenticity
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Verification Result Display Container -->
+                        <div id="resultBox" class="card custom-card p-4 mt-4 d-none">
+                            <h4 class="fw-bold mb-3 border-bottom pb-2">Verification Assessment</h4>
+                            <div class="row align-items-center">
+                                <div class="col-sm-4 text-center mb-3 mb-sm-0">
+                                    <div id="scoreMetric" class="score-circle">88%</div>
+                                    <span class="fw-bold fs-6 d-block" id="statusLabel">VERIFIED SOURCE</span>
+                                </div>
+                                <div class="col-sm-8">
+                                    <h5 id="resultHeadline" class="fw-bold text-dark mb-2"></h5>
+                                    <div class="alert alert-light border py-2 mb-0" id="sourceRec">
+                                        <strong>Recommendation:</strong> Cross-verified with official channels.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trusted Recommendations Sidebar -->
+                    <div class="col-lg-4">
+                        <div class="card custom-card p-4 mb-4">
+                            <h4 class="fw-bold text-success mb-3">✓ Verified News Guidelines</h4>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><strong>Official Gazette & PIB</strong><br><small class="text-muted">Primary Govt Announcements</small></span>
+                                    <span class="badge bg-success rounded-pill">Govt of India</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><strong>Reuters / BBC Reality Check</strong><br><small class="text-muted">Global Bureau Fact Checkers</small></span>
+                                    <span class="badge bg-primary rounded-pill">Global</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><strong>RBI / ISRO Bulletins</strong><br><small class="text-muted">Official Regulatory Notifications</small></span>
+                                    <span class="badge bg-success rounded-pill">Official</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="card custom-card p-4 bg-primary text-white">
+                            <h5 class="fw-bold mb-2">Found Suspicious Content?</h5>
+                            <p class="small mb-3">Help community fact-checkers by submitting suspicious viral forwards to our database for review.</p>
+                            <button class="btn btn-light btn-sm fw-bold text-primary" onclick="showSection('report')">🚨 Report Suspicious Forward</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: HISTORY TRACKING -->
+            <section id="history-section" class="d-none">
+                <div class="card custom-card p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h3 class="fw-bold m-0 text-primary">Your Verification History</h3>
+                            <small class="text-muted">Your past checked news headlines saved securely in persistent storage.</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="historySearch" class="form-control" placeholder="Search history..." onkeyup="filterHistory()">
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadHistoryTable()">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="historyTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 160px;">Date/Time</th>
+                                    <th>News Headline / Claim</th>
+                                    <th style="width: 140px;">Credibility Score</th>
+                                    <th style="width: 260px;">Status Verdict</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically via loadHistoryTable() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: REPORT SUSPICIOUS NEWS -->
+            <section id="report-section" class="d-none">
+                <div class="card custom-card p-4 max-width-md mx-auto" style="max-width: 750px;">
+                    <h3 class="fw-bold text-danger mb-2">🚨 Report Misinformation or Fake News</h3>
+                    <p class="text-muted mb-4">Submit suspicious forwards, misleading claims, or scam messages for admin review and database cataloging.</p>
+                    
+                    <form id="reportForm" onsubmit="handleReportSubmit(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Suspicious Headline / Text <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="reportTitle" placeholder="e.g. Forward claiming free recharge on WhatsApp..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Platform / URL Source</label>
+                            <input type="text" class="form-control" id="reportPlatform" placeholder="WhatsApp Forward, Telegram, Facebook, Twitter/X, URL...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Why do you believe this is fake? (Supporting Context)</label>
+                            <textarea class="form-control" id="reportReason" rows="3" placeholder="Provide any debunk details or reasons why this appears misleading..."></textarea>
+                        </div>
+                        <button type="submit" id="btnSubmitReport" class="btn btn-danger w-100 fw-bold py-2">
+                            Submit Report for Admin Review
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Bootstrap Bundle & DB Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="db.js"></script>
+
+    <script>
+// 1. Initial Page Load Check
+document.addEventListener("DOMContentLoaded", () => {
+    checkUserAuth();
+});
+
+function checkUserAuth() {
+    const currentUser = DB.getCurrentUser();
+    if (currentUser) {
+        showPortalUI(currentUser.name);
+    } else {
+        showAuthGateUI();
+    }
+}
+
+function showPortalUI(username) {
+    document.getElementById('authGateSection')?.classList.add('d-none');
+    document.getElementById('portalSection')?.classList.remove('d-none');
+    
+    const greeting = document.getElementById('userGreeting');
+    if (greeting) greeting.innerText = "Welcome, " + username;
+
+    loadHistoryTable();
+}
+
+function showAuthGateUI() {
+    document.getElementById('portalSection')?.classList.add('d-none');
+    document.getElementById('authGateSection')?.classList.remove('d-none');
+}
+
+// Section Navigation Control
+function showSection(sectionId) {
+    document.getElementById('home-section')?.classList.add('d-none');
+    document.getElementById('history-section')?.classList.add('d-none');
+    document.getElementById('report-section')?.classList.add('d-none');
+    
+    const navHome = document.getElementById('navLinkHome');
+    const navHist = document.getElementById('navLinkHistory');
+    const navRepo = document.getElementById('navLinkReport');
+
+    navHome?.classList.remove('active');
+    navHist?.classList.remove('active');
+    navRepo?.classList.remove('active');
+
+    const targetSection = document.getElementById(sectionId + '-section');
+    if (targetSection) {
+        targetSection.classList.remove('d-none');
+    }
+
+    if (sectionId === 'home') navHome?.classList.add('active');
+    if (sectionId === 'history') {
+        navHist?.classList.add('active');
+        loadHistoryTable();
+    }
+    if (sectionId === 'report') navRepo?.classList.add('active');
+}
+
+// News Verification Engine Handler (100% Serverless & GitHub Pages Compatible)
+function handleAnalyzeNews(event) {
+    if (event) event.preventDefault();
+    
+    const titleInput = document.getElementById('newsTitle');
+    const contentInput = document.getElementById('newsContent');
+    const btnVerify = document.getElementById('btnVerify');
+
+    if (!titleInput) return;
+
+    const title = titleInput.value.trim();
+    const content = contentInput ? contentInput.value.trim() : '';
+
+    const resultBox = document.getElementById('resultBox');
+    const scoreMetric = document.getElementById('scoreMetric');
+    const statusLabel = document.getElementById('statusLabel');
+    const resultHeadline = document.getElementById('resultHeadline');
+    const sourceRec = document.getElementById('sourceRec');
+
+    if (!title) {
+        alert("Please enter a news headline or claim first!");
+        return;
+    }
+
+    if (btnVerify) {
+        btnVerify.disabled = true;
+        btnVerify.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cross-Checking News Context...';
+    }
+
+    // Run verification through client-side DB engine
+    setTimeout(() => {
+        const data = DB.analyzeNews(title, content);
+
+        if (resultHeadline) resultHeadline.innerText = data.headline || title;
+        if (sourceRec) sourceRec.innerHTML = "<strong>Assessment Note:</strong> " + data.recommendation;
+
+        if (data.status === "warning" || data.status === "error") {
+            // Rejected / Non-news / Gibberish / Too Short
+            if (scoreMetric) {
+                scoreMetric.innerText = "N/A";
+                scoreMetric.className = "score-circle bg-secondary text-white";
+            }
+            if (statusLabel) {
+                statusLabel.innerText = data.verdict;
+                statusLabel.className = "fw-bold text-danger";
+            }
+        } else if (data.status === "success") {
+            // Valid evaluated news claim
+            if (scoreMetric) scoreMetric.innerText = data.trustScore + "%";
+            if (statusLabel) statusLabel.innerText = data.verdict;
+
+            if (statusLabel && scoreMetric) {
+                if (data.trustScore <= 35) {
+                    statusLabel.className = "fw-bold text-danger";
+                    scoreMetric.className = "score-circle bg-fake";
+                } else if (data.trustScore >= 75) {
+                    statusLabel.className = "fw-bold text-success";
+                    scoreMetric.className = "score-circle bg-real";
+                } else {
+                    statusLabel.className = "fw-bold text-warning";
+                    scoreMetric.className = "score-circle bg-warning text-dark";
+                }
+            }
+        }
+
+        if (resultBox) {
+            resultBox.classList.remove('d-none');
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        if (btnVerify) {
+            btnVerify.disabled = false;
+            btnVerify.innerHTML = '🔍 Check News Authenticity';
+        }
+    }, 350);
+}
+
+// User Registration Handler
+function handleRegister(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const name = document.getElementById('gateRegName')?.value.trim() || '';
+    const email = document.getElementById('gateRegEmail')?.value.trim() || '';
+    const password = document.getElementById('gateRegPassword')?.value || '';
+
+    const res = DB.register(name, email, password);
+
+    if (res.status === 'success') {
+        alert(res.message);
+        showPortalUI(res.user.name);
+    } else {
+        alert("Registration Failed: " + res.message);
+    }
+
+    return false;
+}
+
+// User Login Handler
+function handleLogin(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const email = document.getElementById('gateLoginEmail')?.value.trim() || '';
+    const password = document.getElementById('gateLoginPassword')?.value || '';
+
+    const res = DB.login(email, password);
+
+    if (res.status === 'success') {
+        showPortalUI(res.user.name);
+    } else {
+        alert("Sign In Failed: " + res.message);
+    }
+
+    return false;
+}
+
+// History Table Loader
+function loadHistoryTable() {
+    const tbody = document.querySelector("#historyTable tbody");
+    if (!tbody) return;
+
+    const history = DB.getHistory();
+
+    if (history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No verification history logged yet. Check a headline above!</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = "";
+    history.forEach(item => {
+        const isFake = item.status.includes('Fake') || item.status.includes('High Risk');
+        const isReal = item.status.includes('Official') || item.status.includes('Verified');
+        const badgeColor = isFake ? 'bg-danger' : (isReal ? 'bg-success' : 'bg-warning text-dark');
+        const scoreColor = isFake ? 'text-danger' : (isReal ? 'text-success' : 'text-warning');
+
+        const row = `<tr>
+            <td class="small text-muted">${item.checked_at}</td>
+            <td class="text-wrap fw-semibold" style="max-width: 450px;">${escapeHtml(item.headline)}</td>
+            <td class="fw-bold ${scoreColor}">${item.trust_score}</td>
+            <td><span class="badge ${badgeColor}">${escapeHtml(item.status)}</span></td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+function filterHistory() {
+    const input = document.getElementById("historySearch")?.value.toLowerCase() || '';
+    const rows = document.querySelectorAll("#historyTable tbody tr");
+    rows.forEach(row => {
+        const text = row.cells[1]?.innerText.toLowerCase() || '';
+        row.style.display = text.includes(input) ? "" : "none";
+    });
+}
+
+// Report Submission Handler
+function handleReportSubmit(event) {
+    if (event) event.preventDefault();
+
+    const title = document.getElementById('reportTitle')?.value.trim() || '';
+    const platform = document.getElementById('reportPlatform')?.value.trim() || '';
+    const reason = document.getElementById('reportReason')?.value.trim() || '';
+
+    if (!title) {
+        alert("Please enter a headline or claim to report.");
+        return;
+    }
+
+    const res = DB.addReport({
+        title: title,
+        platform: platform,
+        reason: reason
+    });
+
+    alert(res.message);
+    document.getElementById('reportForm')?.reset();
+    showSection('home');
+}
+
+function handleLogout(event) {
+    if (event) event.preventDefault();
+    DB.logout();
+    showAuthGateUI();
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+</script>
+</body>
+</html>

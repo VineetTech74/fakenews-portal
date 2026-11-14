@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Fake News Monitoring Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-nav {
+            background-color: #0f172a;
+        }
+        .stat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .stat-card.active-card {
+            border-color: #2563eb;
+            background-color: #f1f5f9;
+        }
+        .table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Top Admin Navigation -->
+    <nav class="navbar navbar-dark admin-nav px-4 py-3 shadow">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-brand fw-bold fs-5 mb-0">🛡️ VeriTruth Admin Console</span>
+                <span class="badge bg-success">Live Storage Connected</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="index.html" class="btn btn-outline-light btn-sm">🌐 Main Portal Home</a>
+                <a href="profile.html" class="btn btn-outline-info btn-sm">👤 My Profile</a>
+                <button class="btn btn-secondary btn-sm" onclick="renderAdmin()">🔄 Refresh</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 my-4">
+        
+        <!-- Alert Notification Box -->
+        <div id="adminAlertContainer"></div>
+
+        <!-- Stat Overview Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card p-3 text-center" id="card-reports" onclick="switchView('reports')">
+                    <h6 class="text-muted text-uppercase small mb-1">Pending Reports</h6>
+                    <h2 class="fw-bold text-warning mb-0" id="cntPending">0</h2>
+                    <small class="text-muted">Awaiting Admin Review</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card p-3 text-center" id="card-verified" onclick="switchView('verified')">
+                    <h6 class="text-muted text-uppercase small mb-1">Verified Real News</h6>
+                    <h2 class="fw-bold text-success mb-0" id="cntVerified">0</h2>
+                    <small class="text-muted">Confirmed Authentic</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card p-3 text-center" id="card-fake" onclick="switchView('fake_cases')">
+                    <h6 class="text-muted text-uppercase small mb-1">Identified Fake News</h6>
+                    <h2 class="fw-bold text-danger mb-0" id="cntFake">0</h2>
+                    <small class="text-muted">Confirmed Misinformation</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card p-3 text-center" id="card-users" onclick="switchView('users')">
+                    <h6 class="text-muted text-uppercase small mb-1">Active Accounts</h6>
+                    <h2 class="fw-bold text-primary mb-0" id="cntUsers">0</h2>
+                    <small class="text-muted">Registered System Users</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs Bar -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active fw-bold" id="tab-reports" href="#" onclick="switchView('reports'); return false;">
+                    🚨 Pending Reports (<span id="tabCountPending">0</span>)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="tab-verified" href="#" onclick="switchView('verified'); return false;">
+                    ✓ Verified Real News (<span id="tabCountVerified">0</span>)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="tab-fake" href="#" onclick="switchView('fake_cases'); return false;">
+                    ⚠️ Fake / Scam Cases (<span id="tabCountFake">0</span>)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="tab-history" href="#" onclick="switchView('history'); return false;">
+                    🔍 Verification Logs (<span id="tabCountHistory">0</span>)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="tab-users" href="#" onclick="switchView('users'); return false;">
+                    👥 User Accounts (<span id="tabCountUsers">0</span>)
+                </a>
+            </li>
+        </ul>
+
+        <!-- Main Content Table Card -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0" id="viewTitle">Incoming User Reports Pipeline</h5>
+                <input type="text" id="adminSearchInput" class="form-control w-25" placeholder="Filter rows..." onkeyup="filterAdminTable()">
+            </div>
+            
+            <div class="table-responsive" id="tableContainer">
+                <!-- Dynamically Rendered by renderAdmin() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle & DB Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="db.js"></script>
+
+    <script>
+        let currentView = 'reports';
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderAdmin();
+        });
+
+        function switchView(viewName) {
+            currentView = viewName;
+
+            // Update Tabs
+            ['reports', 'verified', 'fake_cases', 'history', 'users'].forEach(v => {
+                const tab = document.getElementById('tab-' + (v === 'fake_cases' ? 'fake' : v));
+                const card = document.getElementById('card-' + (v === 'fake_cases' ? 'fake' : v));
+                
+                if (v === currentView) {
+                    tab?.classList.add('active', 'fw-bold');
+                    tab?.classList.remove('text-dark');
+                    card?.classList.add('active-card');
+                } else {
+                    tab?.classList.remove('active', 'fw-bold');
+                    tab?.classList.add('text-dark');
+                    card?.classList.remove('active-card');
+                }
+            });
+
+            renderAdmin();
+        }
+
+        function showAdminAlert(message, type = "info") {
+            const container = document.getElementById('adminAlertContainer');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <strong>Admin Notice:</strong> ${escapeHtml(message)}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
+
+        function renderAdmin() {
+            const allReports = DB.getReports();
+            const pendingReports = allReports.filter(r => r.status === 'Pending');
+            const verifiedReports = allReports.filter(r => r.status === 'Verified Real');
+            const fakeReports = allReports.filter(r => r.status === 'Fake / Scam');
+            const allUsers = DB.getUsers();
+            const allHistory = DB.getHistory();
+
+            // Update Counters
+            document.getElementById('cntPending').innerText = pendingReports.length;
+            document.getElementById('cntVerified').innerText = verifiedReports.length;
+            document.getElementById('cntFake').innerText = fakeReports.length;
+            document.getElementById('cntUsers').innerText = allUsers.length;
+
+            document.getElementById('tabCountPending').innerText = pendingReports.length;
+            document.getElementById('tabCountVerified').innerText = verifiedReports.length;
+            document.getElementById('tabCountFake').innerText = fakeReports.length;
+            document.getElementById('tabCountUsers').innerText = allUsers.length;
+            document.getElementById('tabCountHistory').innerText = allHistory.length;
+
+            const container = document.getElementById('tableContainer');
+            const title = document.getElementById('viewTitle');
+
+            if (currentView === 'users') {
+                title.innerText = `Registered System Users (${allUsers.length})`;
+                renderUsersTable(allUsers, container);
+            } else if (currentView === 'verified') {
+                title.innerText = `Verified Authentic News Archive (${verifiedReports.length})`;
+                renderArchiveTable(verifiedReports, container, 'Verified Real');
+            } else if (currentView === 'fake_cases') {
+                title.innerText = `Identified Fake News Archive (${fakeReports.length})`;
+                renderArchiveTable(fakeReports, container, 'Fake / Scam');
+            } else if (currentView === 'history') {
+                title.innerText = `Recent Verification Logs (${allHistory.length})`;
+                renderHistoryTable(allHistory, container);
+            } else {
+                title.innerText = `🚨 Incoming User Reports (Pending Review: ${pendingReports.length})`;
+                renderPendingTable(pendingReports, container);
+            }
+        }
+
+        function renderPendingTable(reports, container) {
+            if (reports.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4"><em>No pending user reports requiring review at this time.</em></div>`;
+                return;
+            }
+
+            let html = `
+                <table class="table table-hover align-middle" id="adminTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Reporter</th>
+                            <th>Reported Headline</th>
+                            <th>Platform</th>
+                            <th>Remarks / Reason</th>
+                            <th>Date Submitted</th>
+                            <th style="min-width: 250px;">Verification Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reports.forEach(r => {
+                html += `
+                    <tr>
+                        <td><strong>#${r.id}</strong></td>
+                        <td><span class="fw-semibold text-primary">${escapeHtml(r.user_name || "Anonymous")}</span></td>
+                        <td class="text-wrap fw-bold" style="max-width: 320px;">"${escapeHtml(r.headline)}"</td>
+                        <td><span class="badge bg-info text-dark">${escapeHtml(r.platform || "General")}</span></td>
+                        <td class="text-muted small" style="max-width: 260px;">${escapeHtml(r.reason || "No remarks")}</td>
+                        <td class="small text-muted">${r.date_reported}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-success" onclick="actionVerifyReal(${r.id})">✓ Verify Real</button>
+                                <button class="btn btn-sm btn-danger" onclick="actionMarkFake(${r.id})">✗ Mark Fake</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="actionDeleteReport(${r.id})">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function renderArchiveTable(reports, container, statusLabel) {
+            if (reports.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4"><em>No records in this archive.</em></div>`;
+                return;
+            }
+
+            let html = `
+                <table class="table table-hover align-middle" id="adminTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Reporter</th>
+                            <th>Headline Context</th>
+                            <th>Platform</th>
+                            <th>Reason / Remarks</th>
+                            <th>Date Reported</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reports.forEach(r => {
+                const badgeColor = r.status === 'Verified Real' ? 'bg-success' : 'bg-danger';
+                html += `
+                    <tr>
+                        <td>#${r.id}</td>
+                        <td>${escapeHtml(r.user_name || "Anonymous")}</td>
+                        <td class="text-wrap fw-semibold" style="max-width: 320px;">"${escapeHtml(r.headline)}"</td>
+                        <td><span class="badge bg-info text-dark">${escapeHtml(r.platform || "General")}</span></td>
+                        <td class="text-muted small" style="max-width: 250px;">${escapeHtml(r.reason || "No remarks")}</td>
+                        <td class="small text-muted">${r.date_reported}</td>
+                        <td><span class="badge ${badgeColor}">${escapeHtml(r.status)}</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-warning" onclick="actionResetPending(${r.id})">Reset to Pending</button>
+                                <button class="btn btn-outline-danger" onclick="actionDeleteReport(${r.id})">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function renderHistoryTable(logs, container) {
+            if (logs.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4"><em>No search history logs recorded yet.</em></div>`;
+                return;
+            }
+
+            let html = `
+                <table class="table table-hover align-middle" id="adminTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Log ID</th>
+                            <th>User</th>
+                            <th>Searched Headline</th>
+                            <th>Trust Score</th>
+                            <th>Verdict</th>
+                            <th>Date/Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            logs.forEach(h => {
+                const isFake = h.status.includes('Fake') || h.status.includes('High Risk');
+                const isReal = h.status.includes('Official') || h.status.includes('Verified');
+                const badgeClass = isFake ? 'bg-danger' : (isReal ? 'bg-success' : 'bg-warning text-dark');
+                const scoreClass = isFake ? 'text-danger' : (isReal ? 'text-success' : 'text-warning');
+
+                html += `
+                    <tr>
+                        <td>#${h.id}</td>
+                        <td><span class="fw-semibold text-primary">${escapeHtml(h.user_name || "Guest")}</span></td>
+                        <td class="text-wrap" style="max-width: 380px;">${escapeHtml(h.headline)}</td>
+                        <td><span class="fw-bold ${scoreClass}">${h.trust_score}</span></td>
+                        <td><span class="badge ${badgeClass}">${escapeHtml(h.status)}</span></td>
+                        <td class="small text-muted">${h.checked_at}</td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="actionDeleteHistory(${h.id})">Delete</button></td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function renderUsersTable(users, container) {
+            if (users.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4"><em>No registered users found.</em></div>`;
+                return;
+            }
+
+            let html = `
+                <table class="table table-hover align-middle" id="adminTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>User ID</th>
+                            <th>Full Name</th>
+                            <th>Email Address</th>
+                            <th>Role</th>
+                            <th>Age</th>
+                            <th>Address</th>
+                            <th>Joined Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            users.forEach(u => {
+                html += `
+                    <tr>
+                        <td><strong>#${u.id}</strong></td>
+                        <td class="fw-semibold">${escapeHtml(u.name)}</td>
+                        <td>${escapeHtml(u.email)}</td>
+                        <td><span class="badge bg-primary">${escapeHtml(u.role || "Standard User")}</span></td>
+                        <td>${u.age ? u.age : '<span class="text-muted">-</span>'}</td>
+                        <td class="small text-muted" style="max-width: 200px;">${escapeHtml(u.address || "-")}</td>
+                        <td class="small text-muted">${u.created_at || "Recent"}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="actionDeleteUser(${u.id}, '${escapeHtml(u.name)}')">
+                                Delete User
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        // Action Handlers
+        function actionVerifyReal(id) {
+            DB.updateReportStatus(id, 'Verified Real');
+            showAdminAlert(`Report #${id} marked as VERIFIED REAL news.`, "success");
+            renderAdmin();
+        }
+
+        function actionMarkFake(id) {
+            DB.updateReportStatus(id, 'Fake / Scam');
+            showAdminAlert(`Report #${id} marked as CONFIRMED FAKE / SCAM.`, "danger");
+            renderAdmin();
+        }
+
+        function actionResetPending(id) {
+            DB.updateReportStatus(id, 'Pending');
+            showAdminAlert(`Report #${id} status reset to Pending.`, "warning");
+            renderAdmin();
+        }
+
+        function actionDeleteReport(id) {
+            if (confirm("Are you sure you want to delete this report?")) {
+                DB.deleteReport(id);
+                showAdminAlert(`Report #${id} deleted successfully.`, "secondary");
+                renderAdmin();
+            }
+        }
+
+        function actionDeleteUser(id, name) {
+            if (confirm(`Are you sure you want to delete user #${id} (${name})?`)) {
+                DB.deleteUser(id);
+                showAdminAlert(`User #${id} (${name}) deleted.`, "secondary");
+                renderAdmin();
+            }
+        }
+
+        function actionDeleteHistory(id) {
+            if (confirm("Delete this history record?")) {
+                DB.deleteHistory(id);
+                showAdminAlert(`History log #${id} deleted.`, "secondary");
+                renderAdmin();
+            }
+        }
+
+        function filterAdminTable() {
+            const query = document.getElementById("adminSearchInput")?.value.toLowerCase() || '';
+            const rows = document.querySelectorAll("#adminTable tbody tr");
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? "" : "none";
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
